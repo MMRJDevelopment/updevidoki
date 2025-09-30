@@ -6,21 +6,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Edit3 } from "lucide-react";
 import Image from "next/image";
-import { useChangePasswordMutation } from "@/redux/features/auth/authApi";
+import {
+  useChangePasswordMutation,
+  useGetMeQuery,
+} from "@/redux/features/auth/authApi";
 import { toast } from "sonner";
+import { useUpdateUserInfoMutation } from "@/redux/features/userDashbord/userDashbordApi";
 
 export default function AccountSettings() {
-  const [firstName, setFirstName] = useState("Jhon");
-  const [lastName, setLastName] = useState("David");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [changePassword, { isLoading }] = useChangePasswordMutation();
-
-  const handleSaveProfile = () => {
-    console.log("Saving profile:", { firstName, lastName });
-    // Add your save logic here
+  const [updateUserInfo] = useUpdateUserInfoMutation();
+  const { data } = useGetMeQuery({});
+  const user = data?.data;
+  console.log(user, "user in settings");
+  const handleSaveProfile = async () => {
+    try {
+      const result = await updateUserInfo({ firstName, lastName }).unwrap();
+      if (result.success) {
+        toast.success("Profile updated successfully!");
+      } else {
+        toast.error(`❌ ${result.message}`);
+      }
+      console.log("Profile updated:", result);
+    } catch (error) {
+      console.error("❌ Failed to update profile", error);
+    }
   };
 
   const handleUpdatePassword = async () => {
@@ -60,7 +76,11 @@ export default function AccountSettings() {
         <div className="mb-6">
           <div className="relative w-16 h-16 mb-4">
             <Image
-              src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D"
+              src={
+                user?.profileImage
+                  ? user.profileImage
+                  : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D"
+              }
               alt="Profile picture"
               width={64}
               height={64}

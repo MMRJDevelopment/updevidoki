@@ -4,8 +4,8 @@
 import { Button } from "@/components/ui/buttons/Button";
 import { Card, CardContent } from "@/components/ui/card/Card";
 import {
+  useGetMyMemorialsQuery,
   useGetUserDashbordOverviewQuery,
-  useGetUserMemorialsQuery,
 } from "@/redux/features/userDashbord/userDashbordApi";
 import { Modal, Skeleton, Spin } from "antd";
 import { Heart, Eye, QrCode } from "lucide-react";
@@ -31,7 +31,7 @@ export function Dashboard({
   const { data, isLoading } = useGetUserDashbordOverviewQuery({});
   const router = useRouter();
   const { data: memorialsData, isLoading: memorialsLoading } =
-    useGetUserMemorialsQuery({
+    useGetMyMemorialsQuery({
       page: 1,
       limit: 10,
     });

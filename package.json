@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prot": "npx dev -p 3132",
-    "dev": "next dev -p 3132",
+    "dev": "next dev -p 3000",
     "start": "next start -p 3132",
     "build": "next build",
     "lint": "next lint"

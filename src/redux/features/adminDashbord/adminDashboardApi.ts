@@ -101,6 +101,28 @@ const adminDashboardApi = baseApi.injectEndpoints({
       },
       providesTags: ["orders"],
     }),
+
+    // GET ALL TICKET LIST
+    getAllUserTokenList: builder.query({
+      query: ({ page, limit, status, searchTerm }) => {
+        return {
+          url: `/tokens`,
+          method: "GET",
+          params: { page, limit, status, searchTerm },
+        };
+      },
+      providesTags: ["orders"],
+    }),
+
+    // get user ticket by id
+    getSingleUserTicket: builder.query({
+      query: (id) => ({
+        url: `/tokens/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["tickets"],
+    }),
+
     // create messages
     createMassages: builder.mutation({
       query: (data) => {
@@ -111,6 +133,30 @@ const adminDashboardApi = baseApi.injectEndpoints({
         };
       },
       invalidatesTags: ["messages"],
+    }),
+
+    //reply massage
+    createMassagesReply: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/tokens/reply-message/${data?.id}`,
+          method: "POST",
+          body: data?.replyMessage,
+        };
+      },
+      invalidatesTags: ["messages"],
+    }),
+
+    // update tocken status
+    updateTockenStatus: builder.mutation({
+      query: ({ id, status }) => {
+        return {
+          url: `/tokens/status/${id}`,
+          method: "PATCH",
+          body: { status },
+        };
+      },
+      invalidatesTags: ["tickets"],
     }),
 
     //get conversetion details
@@ -183,11 +229,15 @@ export const {
   useGetAllOrdersQuery,
   useGetAllPaymentsQuery,
   useCreateTicketMutation,
-  useGetUserTokenListQuery,
   useCreateMassagesMutation,
   useGetMyAllTicketsQuery,
   useGetConversationDetailsQuery,
   useCreateUserMemorialMutation,
+  useGetAllUserTokenListQuery,
+  useGetSingleUserTicketQuery,
+  useGetUserTokenListQuery,
+  useCreateMassagesReplyMutation,
+  useUpdateTockenStatusMutation,
 
   useGetSingleExampleQuery,
   useUpdateExampleMutation,

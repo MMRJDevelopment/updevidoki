@@ -17,6 +17,7 @@ export type UserMetasss = {
   fullName: string;
   coverPhoto: string;
   privacy: "PUBLIC" | "PRIVATE";
+  updatedAt: string;
 };
 
 const MemorialManagement = () => {
@@ -95,8 +96,11 @@ const MemorialManagement = () => {
     },
     {
       header: "Date",
-      accessor: "date",
+      accessor: "updatedAt",
       className: "px-12",
+      render: (row: UserMetasss) => (
+        <span>{new Date(row?.updatedAt).toLocaleDateString()}</span>
+      ),
     },
     {
       header: "Action",

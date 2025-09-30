@@ -1,269 +1,195 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client"
-import type React from "react"
+"use client";
+import type React from "react";
 
-import { X } from "lucide-react"
-import Image from "next/image"
-import { useState, useEffect, useRef } from "react"
-import { IoSearch } from "react-icons/io5"
+import { X, Send, Paperclip, Clock, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import { IoSearch } from "react-icons/io5";
+import { usePathname } from "next/navigation";
+import {
+  useGetSingleUserTicketQuery,
+  useGetUserTokenListQuery,
+  useCreateMassagesReplyMutation,
+  useUpdateTockenStatusMutation,
+} from "@/redux/features/adminDashbord/adminDashboardApi";
 
 const TicketDetails = () => {
-  type RequestMeta = {
-    id: string
-    name: string
-    image: string
-    email: string
-    requestId: string
-    subject: string
-    action: string
-    message: string
-    timestamp: string
-    status: "Pending" | "High priority" | "Resolved"
-    department: string
-    priority: "Low" | "Medium" | "High"
-  }
+  const path = usePathname();
+  const userId = path.split("/").pop();
+  const [search, setSearch] = useState<string>("");
+  const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
-  const requests: RequestMeta[] = [
-    {
-      id: "1",
-      name: "John Doe",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "johndoe@example.com",
-      requestId: "REQ-1001",
-      subject: "Access Request",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "janesmith@example.com",
-      requestId: "REQ-1002",
-      subject: "Password Reset",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "3",
-      name: "Michael Brown",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "michael.brown@example.com",
-      requestId: "REQ-1003",
-      subject: "Account Update",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "4",
-      name: "Emily Johnson",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "emily.johnson@example.com",
-      requestId: "REQ-1004",
-      subject: "Data Export",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "5",
-      name: "Chris Evans",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "chris.evans@example.com",
-      requestId: "REQ-1005",
-      subject: "Bug Report",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "6",
-      name: "Sophia Miller",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "sophia.miller@example.com",
-      requestId: "REQ-1006",
-      subject: "Feature Request",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "7",
-      name: "David Wilson",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "david.wilson@example.com",
-      requestId: "REQ-1007",
-      subject: "Access Removal",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "8",
-      name: "Olivia Martinez",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "olivia.martinez@example.com",
-      requestId: "REQ-1008",
-      subject: "Invoice Query",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "9",
-      name: "Daniel Anderson",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "daniel.anderson@example.com",
-      requestId: "REQ-1009",
-      subject: "Refund Request",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-    {
-      id: "10",
-      name: "Ava Thomas",
-      image: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=500&auto=format&fit=crop&q=60",
-      email: "ava.thomas@example.com",
-      requestId: "REQ-1010",
-      subject: "General Inquiry",
-      action: "view",
-      message:
-        "I need help to process the payment via my VISA card. Its returning failed payment after the checkout. I need to send out this campaign within today, can you please help ASAP.",
-      timestamp: "24 May 2025, 11:00 am",
-      status: "Pending",
-      department: "Finance department",
-      priority: "High",
-    },
-  ]
+  const { data } = useGetUserTokenListQuery({
+    userId: userId,
+    page: 1,
+    limit: 10,
+  });
+  const userTickets = data?.data?.data || [];
+  const id = selectedRequest?.id;
+  const { data: ticketData } = useGetSingleUserTicketQuery(id);
 
-  const [search, setSearch] = useState<string>("")
-  const [openDropdowns, setOpenDropdowns] = useState<{ [key: string]: boolean }>({})
-  const [selectedRequest, setSelectedRequest] = useState<RequestMeta | null>(null)
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false)
-  const [replyText, setReplyText] = useState("")
-  const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const [createMassagesReply, { isLoading: isReplying }] =
+    useCreateMassagesReplyMutation();
+  const [updateTockenStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateTockenStatusMutation();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const clickedOutside = Object.keys(openDropdowns).every((id) => {
-        const ref = dropdownRefs.current[id]
-        return !ref || !ref.contains(event.target as Node)
-      })
-
-      if (clickedOutside) {
-        setOpenDropdowns({})
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [openDropdowns])
+  console.log(ticketData?.data, "data in selected ticket details");
+  const selectedData = ticketData?.data;
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value)
-  }
+    setSearch(event.target.value);
+  };
 
-  const toggleDropdown = (id: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }))
-  }
+  const handleViewDetails = (request: any) => {
+    setSelectedRequest(request);
+    setIsDetailViewOpen(true);
+    setSelectedStatus(request.status);
+    // Initialize chat messages with the initial request message
+    setChatMessages([
+      {
+        id: `initial-${request.id}`,
+        text: request.description,
+        sender: "user",
+        timestamp: request.createdAt,
+        senderName: `${request.user?.firstName} ${request.user?.lastName}`,
+        senderImage: request.user?.profileImage,
+      },
+    ]);
 
-  const closeDropdown = (id: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [id]: false,
-    }))
-  }
-
-  const handleViewDetails = (row: RequestMeta) => {
-    setSelectedRequest(row)
-    setIsDetailViewOpen(true)
-    closeDropdown(row.id)
-  }
-
-  const handleSolve = (row: RequestMeta) => {
-    console.log("Solving request:", row)
-    setIsDetailViewOpen(false)
-    closeDropdown(row.id)
-  }
+    // Load reply messages if they exist
+    if (request.replyMessage) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `reply-${request.id}`,
+          text: request.replyMessage,
+          sender: "admin",
+          timestamp: request.updatedAt,
+          senderName: "Support Agent",
+        },
+      ]);
+    }
+  };
 
   const handleCancel = () => {
-    setIsDetailViewOpen(false)
-    setReplyText("")
-  }
+    setIsDetailViewOpen(false);
+    setMessage("");
+    setSelectedRequest(null);
+    setChatMessages([]);
+  };
+  const handleSendMessage = async () => {
+    if (message.trim() && selectedRequest) {
+      try {
+        // Send message to backend
+        const result = await createMassagesReply({
+          id: selectedData?.userId,
+          replyMessage: message,
+        }).unwrap();
+
+        // Add message to chat
+        const newMessage = {
+          id: Date.now(),
+          text: message,
+          sender: "admin",
+          timestamp: new Date().toISOString(),
+          senderName: "Support Agent",
+        };
+        setChatMessages([...chatMessages, newMessage]);
+        setMessage("");
+
+        console.log("Message sent successfully:", result);
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        // Optionally show error notification to user
+      }
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (selectedRequest) {
+      try {
+        await updateTockenStatus({
+          id: selectedData?.id,
+          status: newStatus,
+        }).unwrap();
+
+        setSelectedStatus(newStatus);
+        // Update the selected request status
+        setSelectedRequest({
+          ...selectedRequest,
+          status: newStatus,
+        });
+
+        console.log("Status updated successfully");
+      } catch (error) {
+        console.error("Failed to update status:", error);
+        // Optionally show error notification to user
+      }
+    }
+  };
+
+  const formatTime = (date: string) => {
+    return new Date(date).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   const getStatusBadge = (status: string, priority: string) => {
-    const badges = []
+    const statusColors: Record<string, string> = {
+      PENDING: "bg-yellow-100 text-yellow-800",
+      IN_PROGRESS: "bg-blue-100 text-blue-800",
+      RESOLVED: "bg-green-100 text-green-800",
+      CLOSED: "bg-gray-100 text-gray-800",
+    };
 
-    if (status === "Pending") {
-      badges.push(
-        <span key="status" className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-          Pending
-        </span>,
-      )
-    }
+    return (
+      <span
+        className={`px-2 py-1 text-xs rounded-full font-medium ${
+          statusColors[status] || statusColors.PENDING
+        }`}
+      >
+        {status}
+      </span>
+    );
+  };
 
-    if (priority === "High") {
-      badges.push(
-        <span key="priority" className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-          • High priority
-        </span>,
-      )
-    }
-
-    return badges
-  }
+  const getPriorityColor = (priority: string) => {
+    const colors: Record<string, string> = {
+      HIGH: "bg-red-100 text-red-700 border-red-200",
+      MEDIUM: "bg-orange-100 text-orange-700 border-orange-200",
+      LOW: "bg-blue-100 text-blue-700 border-blue-200",
+    };
+    return colors[priority] || colors.LOW;
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <div className="w-1/2 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Support Requests</h1>
-          <p className="text-sm text-gray-600 mb-4">Manage and respond to user support inquiries efficiently.</p>
+      {/* Left Sidebar - Request List */}
+      <div className="w-96 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 border-b border-gray-200 bg-white">
+          <h2 className="text-xl font-semibold text-gray-800">
+            Support Requests
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {userTickets.length} active tickets
+          </p>
 
-          <div className="relative">
+          <div className="relative mt-4">
             <input
               value={search}
               onChange={handleSearchChange}
@@ -271,37 +197,67 @@ const TicketDetails = () => {
               placeholder="Search requests..."
               className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <IoSearch className="absolute right-3 top-2.5 text-gray-400" />
+            <IoSearch className="absolute right-3 top-2.5 text-gray-400 text-xl" />
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {requests.map((request) => (
+          {userTickets?.map((request: any) => (
             <div
               key={request.id}
               onClick={() => handleViewDetails(request)}
-              className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                selectedRequest?.id === request.id ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
+              className={`p-4 border-b border-gray-100 cursor-pointer transition-all ${
+                selectedRequest?.id === request.id
+                  ? "bg-blue-50 border-l-4 border-l-blue-500"
+                  : "hover:bg-gray-50"
               }`}
             >
               <div className="flex items-start space-x-3">
-                <Image
-                  src={request.image || "/placeholder.svg"}
-                  alt={request.name}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+                {/* Avatar */}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium flex-shrink-0">
+                  {request.user?.profileImage ? (
+                    <Image
+                      src={request.user.profileImage}
+                      alt={request.user?.firstName || "User"}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    request.user?.firstName?.charAt(0).toUpperCase() || "U"
+                  )}
+                </div>
+
                 <div className="flex-1 min-w-0">
+                  {/* Name + Date */}
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">{request.name}</h3>
-                    <span className="text-xs text-gray-500">{request.timestamp}</span>
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">
+                      {request.user?.firstName} {request.user?.lastName}
+                    </h3>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(request.createdAt)}
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-600 truncate mb-2">{request.subject}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {getStatusBadge(request.status, request.priority)}
-                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
-                      {request.department}
+
+                  {/* Request Name */}
+                  <p className="text-sm font-medium text-gray-700 mb-1 truncate">
+                    {request.name}
+                  </p>
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 truncate mb-2">
+                    {request.description}
+                  </p>
+
+                  {/* Status + Priority */}
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(request.status, request.priorityLevel)}
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full font-medium border ${getPriorityColor(
+                        request.priorityLevel
+                      )}`}
+                    >
+                      {request.priorityLevel}
                     </span>
                   </div>
                 </div>
@@ -311,91 +267,210 @@ const TicketDetails = () => {
         </div>
       </div>
 
-      {isDetailViewOpen && selectedRequest ? (
-        <div className="w-1/2 bg-white flex flex-col">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">{selectedRequest.subject}</h2>
-              <button onClick={handleCancel} className="p-1 hover:bg-gray-100 rounded-full">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-4">
-              {getStatusBadge(selectedRequest.status, selectedRequest.priority)}
-              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">{selectedRequest.department}</span>
-            </div>
-
-            <div className="flex items-center space-x-3 mb-4">
-              <Image
-                src={selectedRequest.image || "/placeholder.svg"}
-                alt={selectedRequest.name}
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <div>
-                <p className="text-sm font-medium text-gray-900">{selectedRequest.name}</p>
-                <p className="text-xs text-gray-500">{selectedRequest.timestamp}</p>
-              </div>
-            </div>
-
-            <p className="text-sm text-gray-600 mb-4">Hello sir, Hope your are well</p>
-            <p className="text-sm text-gray-700 leading-relaxed mb-6">{selectedRequest.message}</p>
-          </div>
-
-          <div className="flex-1 p-6">
-            <div className="mb-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Image
-                  src="/placeholder.svg?height=32&width=32"
-                  alt="Your avatar"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-700">Reply to</span>
-                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">{selectedRequest.email} ×</span>
+      {/* Right Panel - Chat Interface */}
+      <div className="flex-1 flex flex-col">
+        {isDetailViewOpen && selectedRequest ? (
+          <>
+            {/* Chat Header */}
+            <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium text-lg">
+                  {selectedData?.user?.profileImage ? (
+                    <Image
+                      src={selectedData?.user.profileImage}
+                      alt={selectedData?.user?.firstName || "User"}
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    selectedData?.user?.firstName?.charAt(0).toUpperCase() ||
+                    "U"
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {selectedData?.user?.firstName}{" "}
+                    {selectedData?.user?.lastName}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>{selectedData?.user?.email}</span>
+                    {selectedData?.user?.isVerified && (
+                      <span className="text-green-600 text-xs">✓ Verified</span>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              <textarea
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Write notes here"
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="p-6 border-t border-gray-200">
-            <div className="flex justify-end space-x-3">
               <button
                 onClick={handleCancel}
-                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSolve(selectedRequest)}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Solved
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="w-1/2 bg-gray-50 flex items-center justify-center">
-          <div className="text-center text-gray-500">
-            <p className="text-lg mb-2">Select a support request</p>
-            <p className="text-sm">Choose a request from the list to view details</p>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
-export default TicketDetails
+            {/* Request Details Card */}
+            <div className="bg-white border-b border-gray-200 p-4">
+              <div className="max-w-4xl">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                      {selectedData?.name}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      {selectedData?.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <span
+                      className={`px-3 py-1 text-xs rounded-full font-medium border ${getPriorityColor(
+                        selectedData?.priorityLevel
+                      )}`}
+                    >
+                      {selectedData?.priorityLevel}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>Created: {formatDate(selectedData?.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Ticket ID: {selectedData?.id.slice(-8)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+              <div className="max-w-4xl mx-auto space-y-4">
+                {chatMessages.map((msg) =>
+                  msg.sender === "user" ? (
+                    // User Message (Left)
+                    <div key={msg.id} className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                        {msg.senderImage ? (
+                          <Image
+                            src={msg.senderImage}
+                            alt={msg.senderName}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          msg.senderName?.charAt(0).toUpperCase() || "U"
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {msg.senderName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatTime(msg.timestamp)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700">{msg.text}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Admin Message (Right)
+                    <div
+                      key={msg.id}
+                      className="flex items-start gap-3 justify-end"
+                    >
+                      <div className="flex-1 flex justify-end">
+                        <div className="bg-blue-500 text-white rounded-lg shadow-sm p-4 max-w-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">
+                              {msg.senderName}
+                            </span>
+                            <span className="text-xs text-blue-100 ml-3">
+                              {formatTime(msg.timestamp)}
+                            </span>
+                          </div>
+                          <p className="text-sm">{msg.text}</p>
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                        A
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Message Input */}
+            <div className="bg-white border-t border-gray-200 p-4">
+              <div className="max-w-4xl mx-auto flex items-end gap-3">
+                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <Paperclip className="w-5 h-5 text-gray-600" />
+                </button>
+                <div className="flex-1 relative">
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type your message..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows={1}
+                  />
+                </div>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isReplying || !message.trim()}
+                  className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isReplying ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleStatusChange("RESOLVED")}
+                  className="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
+                >
+                  Shlove
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
+                <IoSearch className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Request Selected
+              </h3>
+              <p className="text-sm text-gray-500">
+                Select a support request to view details and chat
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default TicketDetails;

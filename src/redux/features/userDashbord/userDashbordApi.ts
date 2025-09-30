@@ -17,12 +17,31 @@ const userDashboardApi = baseApi.injectEndpoints({
       }),
       providesTags: ["user", "memorials"],
     }),
+    getMyMemorials: builder.query({
+      query: ({ page, limit }) => ({
+        url: "/memories/my-memories",
+        method: "GET",
+        params: { page, limit },
+      }),
+      providesTags: ["user", "memorials"],
+    }),
+
     getSingleMemorial: builder.query({
       query: (id) => ({
         url: `/memories/${id}`,
         method: "GET",
       }),
       providesTags: ["user", "memorials"],
+    }),
+    updateUserInfo: builder.mutation({
+      query: (data) => {
+        return {
+          url: `/users/update-user`,
+          method: "PATCH",
+          body: data,
+        };
+      },
+      invalidatesTags: ["user"],
     }),
     updateMemorial: builder.mutation({
       query: ({ id, formData }) => {
@@ -77,6 +96,8 @@ export const {
   useGetUserMemorialsQuery,
   useGetSingleMemorialQuery,
   useUpdateMemorialMutation,
+  useUpdateUserInfoMutation,
+  useGetMyMemorialsQuery,
 
   useCreateExampleMutation,
   useUpdateExampleMutation,

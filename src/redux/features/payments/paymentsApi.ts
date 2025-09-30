@@ -13,6 +13,7 @@ const paymentsApi = baseApi.injectEndpoints({
       invalidatesTags: ["payments"],
     }),
     
+    
     verifyPayment: builder.query({
       query: (sessionId) => `/payments/verify/${sessionId}`,
       providesTags: ["payments"],
