@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "prot": "npx prot -p 3132",
-    "dev": "next dev",
+    "dev": "next dev -p 3132",
     "start": "next start -p 3132",
-    "build": "next build -p 3132",
-    "lint": "next lint -p 3132"
+    "build": "next build",
+    "lint": "next lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
