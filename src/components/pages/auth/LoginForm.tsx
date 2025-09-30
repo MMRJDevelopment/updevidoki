@@ -9,13 +9,31 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/buttons/Button";
 import { toast } from "sonner";
-import { useGetMeQuery, useLoginMutation } from "@/redux/features/auth/authApi";
+import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { useDispatch } from "react-redux";
 import { setUser, logout } from "@/redux/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 // import { useAppSelector } from "@/redux/hooks";
+
+export interface DecodedToken {
+  id: string;
+  email: string;
+  role: string;
+  exp: number;
+  iat: number;
+}
+
+export const decodeToken = (token: string): DecodedToken | null => {
+  try {
+    return jwtDecode<DecodedToken>(token);
+  } catch (err) {
+    console.error("Failed to decode token", err);
+    return null;
+  }
+};
 
 // Auth page helper functions integrated directly
 const clearAuthDialogState = (): void => {
@@ -38,10 +56,6 @@ export function LoginForm() {
   const dispatch = useDispatch();
   const router = useRouter();
   const [shouldFetchUser, setShouldFetchUser] = useState(false);
-  const [loginTokens, setLoginTokens] = useState<{
-    access_token: string;
-    refresh_token: string;
-  } | null>(null);
 
   const {
     register,
@@ -50,20 +64,6 @@ export function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-
-  // Get Me Query - only trigger when shouldFetchUser is true
-  const {
-    data: userData,
-    isLoading: isUserDataLoading,
-    isSuccess: isUserDataSuccess,
-    isError: isUserDataError,
-    error: userDataError,
-  } = useGetMeQuery(
-    {}, // Empty object as parameter
-    {
-      skip: !shouldFetchUser, // Skip this query until shouldFetchUser is true
-    }
-  );
 
   // Auth page helper effect - prevents SweetAlert on login page
   useEffect(() => {
@@ -91,54 +91,6 @@ export function LoginForm() {
   }, [dispatch]);
 
   // Handle Get Me API response after login
-  useEffect(() => {
-    if (shouldFetchUser && loginTokens) {
-      if (isUserDataSuccess && userData) {
-        // Set complete user data in Redux
-        dispatch(
-          setUser({
-            access_token: loginTokens.access_token,
-            refresh_token: loginTokens.refresh_token,
-            user: userData.data || userData, // Handle different response structures
-            otp: null,
-          })
-        );
-
-        // Clear auth dialog state before redirect
-        clearAuthDialogState();
-
-        // Reset states
-        setShouldFetchUser(false);
-        setLoginTokens(null);
-
-        // Redirect to dashboard
-        router.push("/dashboard");
-      } else if (isUserDataError) {
-        console.error("Get Me API Error:", userDataError);
-
-        // Handle Get Me API error
-        const errorMessage =
-          (userDataError as any)?.data?.message || "Failed to fetch user data";
-        toast.error(errorMessage);
-
-        // Reset states
-        setShouldFetchUser(false);
-        setLoginTokens(null);
-
-        // Clear tokens from Redux as user data fetch failed
-        dispatch(logout());
-      }
-    }
-  }, [
-    shouldFetchUser,
-    loginTokens,
-    isUserDataSuccess,
-    isUserDataError,
-    userData,
-    userDataError,
-    dispatch,
-    router,
-  ]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -147,25 +99,30 @@ export function LoginForm() {
       if (result.success) {
         toast.success("Login successful! Fetching user data...");
 
-        // Store tokens temporarily and set user data to Redux for API calls
         const tokens = {
           access_token: result.data.accessToken,
           refresh_token: result.data.refreshToken,
         };
 
-        setLoginTokens(tokens);
+        // decode access token immediately
+        const decoded = decodeToken(tokens.access_token);
+        console.log("Decoded Access Token:", decoded);
 
-        // Set tokens in Redux first so that Get Me API can use them
         dispatch(
           setUser({
             access_token: tokens.access_token,
             refresh_token: tokens.refresh_token,
-            user: null, // Will be set after Get Me API call
+            user: decoded, // temp user info until GetMe replaces it
             otp: null,
           })
         );
 
-        // Trigger Get Me API call
+        if (decoded?.role === "ADMIN") {
+          router.push("/dashboard/admin");
+        } else {
+          router.push("/dashboard");
+        }
+
         setShouldFetchUser(true);
 
         console.log("Login successful, tokens set, triggering Get Me API...");
@@ -175,9 +132,7 @@ export function LoginForm() {
         error?.data?.message || "Login failed. Please try again.";
       toast.error(errorMessage);
 
-      // Reset states on login error
       setShouldFetchUser(false);
-      setLoginTokens(null);
     }
   };
 
@@ -194,7 +149,7 @@ export function LoginForm() {
   };
 
   // Combined loading state
-  const isProcessing = isLoginLoading || (shouldFetchUser && isUserDataLoading);
+  const isProcessing = isLoginLoading || shouldFetchUser;
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -276,7 +231,7 @@ export function LoginForm() {
             className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoginLoading && "Logging in..."}
-            {shouldFetchUser && isUserDataLoading && "Fetching user data..."}
+            {shouldFetchUser && "Fetching user data..."}
             {!isProcessing && "Log In"}
           </Button>
         </form>
