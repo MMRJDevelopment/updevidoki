@@ -14,6 +14,7 @@ import { useDispatch } from "react-redux";
 import { setUser, logout } from "@/redux/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 // import { useAppSelector } from "@/redux/hooks";
 
 // Auth page helper functions integrated directly
@@ -33,6 +34,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
   const [shouldFetchUser, setShouldFetchUser] = useState(false);
@@ -101,7 +103,6 @@ export function LoginForm() {
             otp: null,
           })
         );
-
 
         // Clear auth dialog state before redirect
         clearAuthDialogState();
@@ -223,21 +224,34 @@ export function LoginForm() {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <Label
               htmlFor="password"
               className="text-sm font-medium text-gray-700"
             >
               Password
             </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your Password"
-              className="h-12 rounded-xl border-gray-200 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-500/50 focus:bg-white focus:ring-blue-500/20"
-              {...register("password")}
-              disabled={isProcessing}
-            />
+
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your Password"
+                className="h-12 w-full rounded-xl border-gray-200 bg-gray-50 px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-blue-500/50 focus:bg-white focus:ring-blue-500/20"
+                {...register("password")}
+                disabled={isProcessing}
+              />
+
+              {/* Toggle Eye Button */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
             {errors.password && (
               <p className="text-sm text-red-500">{errors.password.message}</p>
             )}

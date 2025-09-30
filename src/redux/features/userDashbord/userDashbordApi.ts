@@ -44,18 +44,11 @@ const userDashboardApi = baseApi.injectEndpoints({
       invalidatesTags: ["user"],
     }),
     updateMemorial: builder.mutation({
-      query: ({ id, formData }) => {
-        if (id) {
-          formData.append("id", id);
-        }
-        console.log(id, formData.get("id"));
-
-        return {
-          url: `/memories/update/${id}`, // if backend expects id in URL
-          method: "POST",
-          body: formData,
-        };
-      },
+      query: ({ id, body }) => ({
+        url: `/memories/update/${id}`,
+        method: "PATCH",
+        body, // FormData will be handled automatically
+      }),
       invalidatesTags: ["user", "memorials"],
     }),
     createExample: builder.mutation({

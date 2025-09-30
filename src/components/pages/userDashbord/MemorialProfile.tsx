@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MapPin, Plus, QrCode, Edit, Camera } from "lucide-react";
+import { MapPin, Plus, QrCode, Edit } from "lucide-react";
 
 import Image from "next/image";
 import { EditProfileModal } from "@/components/ui/modal/edit-profile-modal";
@@ -99,9 +99,7 @@ export default function ProfilePage() {
               size="sm"
               onClick={() => setIsPhotosModalOpen(true)}
               className="bg-white/90 hover:bg-white"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-            </Button>
+            ></Button>
           </div>
 
           {/* Action Buttons */}
@@ -274,7 +272,7 @@ export default function ProfilePage() {
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        id={memorial?.id}
+        memorialData={memorial}
       />
       <AddPhotosModal
         isOpen={isPhotosModalOpen}

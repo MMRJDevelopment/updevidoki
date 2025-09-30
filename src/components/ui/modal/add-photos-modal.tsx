@@ -9,7 +9,6 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
-import { useUpdateMemorialMutation } from "@/redux/features/userDashbord/userDashbordApi";
 
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
@@ -22,7 +21,8 @@ interface AddPhotosModalProps {
 
 export function AddPhotosModal({ isOpen, onClose, id }: AddPhotosModalProps) {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [updateMemorial] = useUpdateMemorialMutation();
+  const [isLoading, setIsLoading] = useState(false);
+  const token = localStorage.getItem("access_token") || "";
 
   const uploadProps: UploadProps = {
     name: "photos",
@@ -44,24 +44,54 @@ export function AddPhotosModal({ isOpen, onClose, id }: AddPhotosModalProps) {
       return;
     }
 
+    if (!id) {
+      message.error("Memorial ID is missing");
+      return;
+    }
+
     const formData = new FormData();
 
-    // ✅ use originFileObj for real File
+    // Append each file to FormData
     fileList.forEach((file) => {
       if (file.originFileObj) {
         formData.append("photos", file.originFileObj);
-        console.log("Added file:", file.originFileObj.name);
       }
     });
 
     try {
-      await updateMemorial({ id, formData }).unwrap();
-      message.success(`Successfully added ${fileList.length} photos`);
+      // await updateMemorial({ id, body: formData }).unwrap();
+      // message.success(
+      //   `Successfully added ${fileList.length} photo${
+      //     fileList.length > 1 ? "s" : ""
+      //   }`
+      // );
+      setIsLoading(true);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/memories/update/${id}`,
+        {
+          method: "PATCH",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        message.error(
+          errorData.message || "Failed to update profile. Please try again."
+        );
+        return;
+      }
       setFileList([]);
       onClose();
     } catch (error: any) {
       console.error("Upload error:", error);
-      message.error("Failed to upload photos, please try again.");
+      const errorMessage =
+        error?.data?.message || "Failed to upload photos, please try again.";
+      message.error(errorMessage);
     }
   };
 
@@ -83,12 +113,15 @@ export function AddPhotosModal({ isOpen, onClose, id }: AddPhotosModalProps) {
       width={600}
       footer={
         <Space>
-          <Button onClick={handleCancel}>Cancel</Button>
+          <Button onClick={handleCancel} disabled={isLoading}>
+            Cancel
+          </Button>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleUpload}
-            disabled={fileList.length === 0}
+            disabled={fileList.length === 0 || isLoading}
+            loading={isLoading}
           >
             Add Photos ({fileList.length})
           </Button>
