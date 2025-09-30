@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prot": "npx prot  ",
-    "dev": "next dev ",
+    "prot": "npx prot -p 3132",
+    "dev": "next dev",
     "start": "next start -p 3132",
     "build": "next build",
     "lint": "next lint"
