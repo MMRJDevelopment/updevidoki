@@ -12,11 +12,11 @@ import { useAppSelector } from "@/redux/hooks";
 import { RootState } from "@/redux/store";
 
 export default function CreateMemorialPage() {
-
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [galleryPhotos, setGalleryPhotos] = useState<File[]>([]);
   const [videos, setVideos] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [coverPhotoUrl, setCoverPhotoUrl] = useState<string | null>(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
@@ -307,6 +307,8 @@ export default function CreateMemorialPage() {
       // Send the request
       // const result = await createMemorial(submitFormData).unwrap();
 
+      setIsLoading(true); // start loading
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/memories/create`,
         {
@@ -317,6 +319,10 @@ export default function CreateMemorialPage() {
           },
         }
       );
+
+      if (!res.ok) {
+        throw new Error("Failed to create memory");
+      }
       const result = await res.json();
       console.log("[v0] ✅ Success:", result);
       toast.success("Memorial created successfully!");
