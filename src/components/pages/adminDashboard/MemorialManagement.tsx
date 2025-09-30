@@ -14,6 +14,9 @@ export type UserMetasss = {
   date: string;
   status: "Published" | "Draft";
   actions: string;
+  fullName: string;
+  coverPhoto: string;
+  privacy: "PUBLIC" | "PRIVATE";
 };
 
 const MemorialManagement = () => {
@@ -37,7 +40,7 @@ const MemorialManagement = () => {
   const totalPage = Math.ceil(totalItem / ITEMS_PER_PAGE);
 
   const memorials = memorialsData?.data?.data || [];
-  console.log(memorials);
+  console.log(memorials, "memorials");
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
@@ -61,13 +64,13 @@ const MemorialManagement = () => {
       render: (memorial: UserMetasss) => (
         <div className="flex items-center space-x-3">
           <Image
-            src={memorial.image}
-            alt={memorial.name}
+            src={memorial.coverPhoto}
+            alt={memorial.fullName}
             width={32}
             height={32}
             className="w-8 h-8 rounded-full object-cover"
           />
-          <span>{memorial.name}</span>
+          <span>{memorial.fullName}</span>
         </div>
       ),
     },
@@ -78,13 +81,13 @@ const MemorialManagement = () => {
       className: "px-12",
       render: (row: UserMetasss) => (
         <div>
-          {row.status === "Published" ? (
+          {row.privacy === "PUBLIC" ? (
             <span className="flex w-[116px] h-8 px-3 py-2  text-center justify-center items-center rounded-[24px] bg-[var(--foundation-blue-light-hover,#DEE8FC)] text-[var(--Foundation-Blue-Normal,#2563EB)] font-outfit text-base font-normal leading-[140%]">
-              Published
+              PUBLIC
             </span>
           ) : (
             <span className="flex w-[116px] h-8 px-3 py-2  text-center justify-center items-center rounded-[24px] bg-[#FAECE9] text-[#881212] font-outfit text-base font-normal leading-[140%]">
-              Draft
+              PRIVATE
             </span>
           )}
         </div>

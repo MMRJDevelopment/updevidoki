@@ -6,8 +6,8 @@
     "prot": "npx prot -p 3132",
     "dev": "next dev",
     "start": "next start -p 3132",
-    "build": "next build",
-    "lint": "next lint"
+    "build": "next build -p 3132",
+    "lint": "next lint -p 3132"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
