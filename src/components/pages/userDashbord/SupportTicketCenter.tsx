@@ -21,6 +21,7 @@ import {
   useGetMyAllTicketsQuery,
   useGetUserTokenListQuery,
 } from "@/redux/features/adminDashbord/adminDashboardApi";
+import { useAppSelector } from "@/redux/hooks";
 
 export interface Ticket {
   id: string;
@@ -36,13 +37,14 @@ export interface Ticket {
 }
 
 export function SupportTicketCenter() {
+  const user = useAppSelector((state) => state.auth.user);
   const { data } = useGetMyAllTicketsQuery({
-    id: "68ca3b959c3d160055c2b272",
+    id: user.id,
     page: 1,
     limit: 10,
   });
   const mockTickets: Ticket[] = data?.data?.data || [];
-  console.log(mockTickets, "mockTickets");
+  console.log(user, "user from support ticket center");
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
