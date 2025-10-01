@@ -3,16 +3,14 @@
 
 import { Button } from "@/components/ui/buttons/Button";
 import { Card, CardContent } from "@/components/ui/card/Card";
-import {
-  useGetMyMemorialsQuery,
-  useGetUserDashbordOverviewQuery,
-} from "@/redux/features/userDashbord/userDashbordApi";
+import { fetchPosts } from "@/lib/api-client";
+import { useGetUserDashbordOverviewQuery } from "@/redux/features/userDashbord/userDashbordApi";
 import { Modal, Skeleton, Spin } from "antd";
 import { Heart, Eye, QrCode } from "lucide-react";
 import Image from "next/image";
 // import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiPlusCircle } from "react-icons/fi";
 import { MdOutlineDoNotDisturbOff } from "react-icons/md";
 
@@ -28,16 +26,32 @@ export function Dashboard({
   const [modalStates, setModalStates] = useState({
     basic: false,
   });
-  const { data, isLoading } = useGetUserDashbordOverviewQuery({});
-  const router = useRouter();
-  const { data: memorialsData, isLoading: memorialsLoading } =
-    useGetMyMemorialsQuery({
-      page: 1,
-      limit: 10,
-    });
+  const [posts, setPosts] = useState([]);
 
-  const memorials = memorialsData?.data?.data || [];
-  console.log(memorials, "memorials data");
+  const [memorialsLoading, setLoadingMemorials] = useState(false);
+  const { data, isLoading } = useGetUserDashbordOverviewQuery({});
+
+  const router = useRouter();
+
+  // Load posts function
+  const loadPosts = async () => {
+    setLoadingMemorials(true);
+    try {
+      const data = await fetchPosts();
+      setPosts(data?.data?.data);
+    } catch (error) {
+      console.error("Failed to load posts:", error);
+    } finally {
+      setLoadingMemorials(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const memorials = posts;
 
   const stats = data?.data;
   console.log(stats, "user dashboard stats");

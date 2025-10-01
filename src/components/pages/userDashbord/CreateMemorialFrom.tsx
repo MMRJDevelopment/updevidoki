@@ -304,10 +304,11 @@ export default function CreateMemorialPage() {
 
       console.log("[v0] 🌐 Sending request to backend...");
 
-      // Send the request
-      // const result = await createMemorial(submitFormData).unwrap();
+    
 
       setIsLoading(true); // start loading
+
+      
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/memories/create`,
