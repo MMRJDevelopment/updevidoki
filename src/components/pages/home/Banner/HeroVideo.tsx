@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Pause, Play, Volume2, VolumeX, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/buttons/Button";
+import { useRouter } from "next/navigation";
 
 type HeroVideoProps = {
   src?: string;
@@ -17,13 +18,13 @@ export default function HeroVideo({
   src = "/Family_memories_ver04.mp4",
   heading = "A New Way to\nRemember Loved Ones",
   subtitle = "Celebrate and preserve memories to share with family and friends.",
-  ctaHref = "#order",
   ctaLabel = "Order Your Memory Square",
 }: HeroVideoProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [hasEnded, setHasEnded] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const v = videoRef.current;
@@ -119,7 +120,7 @@ export default function HeroVideo({
       {/* Foreground banner content (classes for GSAP) */}
       <div className="relative z-10 h-[50vh] lg:h-full container mx-auto px-6 flex items-center justify-center">
         <div className="text-center max-w-3xl">
-          <h1 className="text-white text-center font-[Outfit] md:text-4xl sm:text-3xl text-3xl lg:text-[56px] font-bold leading-[120%]">
+          <h1 className="text-white text-center font-[Outfit] md:text-4xl md:mb-16 lg:mb-32 sm:text-3xl text-3xl lg:text-[56px] font-bold leading-[120%]">
             {line1}
             {line2}
           </h1>
@@ -130,21 +131,22 @@ export default function HeroVideo({
 
           <div className="content mt-6 flex items-center justify-center">
             <Button
+              onClick={() => router.push("/login")}
               asChild
               className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-5 text-sm sm:text-base"
             >
-              <Link href={ctaHref}>{ctaLabel}</Link>
+              <Link href="/auth/login">{ctaLabel}</Link>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Small on-video controls */}
-      <div className="pointer-events-none absolute bottom-4 left-4 z-10 flex items-center gap-2 hidden lg:block">
+      <div className="pointer-events-none absolute bottom-4 left-4 z-10 md:flex items-center  hidden lg:block">
         <Button
           variant="secondary"
           size="icon"
-          className="pointer-events-auto bg-white/80 hover:bg-white rounded-full"
+          className="pointer-events-auto bg-white/80 hover:bg-white mr-2 rounded-full "
           onClick={togglePlay}
           aria-label={
             isPlaying ? "Pause background video" : "Play background video"
