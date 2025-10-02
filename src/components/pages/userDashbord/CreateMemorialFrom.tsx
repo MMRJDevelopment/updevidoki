@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAppSelector } from "@/redux/hooks";
 import { RootState } from "@/redux/store";
+import { createMemory } from "@/lib/api-client";
+import { useRouter } from "next/navigation";
 
 export default function CreateMemorialPage() {
   const [coverPhoto, setCoverPhoto] = useState<File | null>(null);
@@ -17,7 +19,7 @@ export default function CreateMemorialPage() {
   const [galleryPhotos, setGalleryPhotos] = useState<File[]>([]);
   const [videos, setVideos] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const router = useRouter();
   const [coverPhotoUrl, setCoverPhotoUrl] = useState<string | null>(null);
   const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
 
@@ -223,16 +225,9 @@ export default function CreateMemorialPage() {
       // Create FormData matching Postman structure
       const submitFormData = new FormData();
 
-      console.log("[v0] 🚀 Starting FormData construction...");
-
       // 1. Add profilePhoto (if exists)
       if (profilePhoto) {
         submitFormData.append("profilePhoto", profilePhoto);
-        console.log("[v0] ✓ profilePhoto:", {
-          name: profilePhoto.name,
-          type: profilePhoto.type,
-          size: `${(profilePhoto.size / 1024).toFixed(2)} KB`,
-        });
       }
 
       // 2. Add data as JSON string (Text field in Postman)
@@ -253,84 +248,36 @@ export default function CreateMemorialPage() {
       // 3. Add coverPhoto (if exists)
       if (coverPhoto) {
         submitFormData.append("coverPhoto", coverPhoto);
-        console.log("[v0] ✓ coverPhoto:", {
-          name: coverPhoto.name,
-          type: coverPhoto.type,
-          size: `${(coverPhoto.size / 1024).toFixed(2)} KB`,
-        });
       }
 
       // 4. Add photos array (multiple files with same key name)
       if (galleryPhotos.length > 0) {
-        galleryPhotos.forEach((photo, index) => {
+        galleryPhotos.forEach((photo) => {
           submitFormData.append("photos", photo);
-          console.log(`[v0] ✓ photos[${index}]:`, {
-            name: photo.name,
-            type: photo.type,
-            size: `${(photo.size / 1024).toFixed(2)} KB`,
-          });
         });
       }
 
       // 5. Add videos array (multiple files with same key name)
       if (videos.length > 0) {
-        videos.forEach((video, index) => {
+        videos.forEach((video) => {
           submitFormData.append("videos", video);
-          console.log(`[v0] ✓ videos[${index}]:`, {
-            name: video.name,
-            type: video.type,
-            size: `${(video.size / 1024).toFixed(2)} KB`,
-          });
         });
       }
 
-      console.log("[v0] 📦 FormData Summary:");
-      console.log("[v0]   - profilePhoto:", profilePhoto ? "✓" : "✗");
-      console.log("[v0]   - data:", "✓ (JSON string)");
-      console.log("[v0]   - coverPhoto:", coverPhoto ? "✓" : "✗");
-      console.log("[v0]   - photos:", galleryPhotos.length, "files");
-      console.log("[v0]   - videos:", videos.length, "files");
-
-      console.log("[v0] 📋 FormData Entries:");
-      for (const [key, value] of submitFormData.entries()) {
-        if (value instanceof File) {
-          console.log(`[v0]   ${key}:`, `File(${value.name}, ${value.type})`);
-        } else {
-          console.log(`[v0]   ${key}:`, value);
-        }
-      }
-
-      toast.info("Uploading may take a moment for large files...");
-
-      console.log("[v0] 🌐 Sending request to backend...");
-
-    
-
       setIsLoading(true); // start loading
 
-      
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/memories/create`,
-        {
-          method: "POST",
-          body: submitFormData,
-          headers: {
-            Authorization: `Bearer ${tocken}`,
-          },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to create memory");
+      const res = await createMemory(submitFormData);
+      if (res.success) {
+        setIsLoading(false); // end loading
+        toast.success("Memorial created successfully!");
+        router.back(); // Go back to previous page
+      } else {
+        toast.error("Failed to create memory");
       }
-      const result = await res.json();
-      console.log("[v0] ✅ Success:", result);
-      toast.success("Memorial created successfully!");
 
       resetForm();
     } catch (error: any) {
-      console.error("[v0] ❌ Error Details:", {
+      console.error(" Error Details:", {
         status: error?.status,
         data: error?.data,
         message: error?.data?.message || error?.message,

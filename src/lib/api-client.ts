@@ -47,15 +47,22 @@ export async function fetchPosts(): Promise<any> {
 export async function createMemory(formData: FormData): Promise<any> {
   const token = localStorage.getItem("access_token") || "";
 
-  const res = await fetch(`${NEXT_PUBLIC_BASE_URL}/memories/create`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/memories/create`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }
+  );
 
-  if (!res.ok) throw new Error("Failed to create memory");
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: "Failed to create memory" }));
+    throw new Error(error.message || "Failed to create memory");
+  }
+
   return res.json();
 }
 
