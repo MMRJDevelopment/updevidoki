@@ -5,7 +5,7 @@ import type React from "react";
 
 import { X, Send, Paperclip, Clock, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { IoSearch } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import {
@@ -36,10 +36,7 @@ const TicketDetails = () => {
 
   const [createMassagesReply, { isLoading: isReplying }] =
     useCreateMassagesReplyMutation();
-  const [updateTockenStatus, { isLoading: isUpdatingStatus }] =
-    useUpdateTockenStatusMutation();
 
-  console.log(ticketData?.data, "data in selected ticket details");
   const selectedData = ticketData?.data;
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +47,6 @@ const TicketDetails = () => {
     setSelectedRequest(request);
     setIsDetailViewOpen(true);
     setSelectedStatus(request.status);
-    // Initialize chat messages with the initial request message
     setChatMessages([
       {
         id: `initial-${request.id}`,
@@ -88,7 +84,7 @@ const TicketDetails = () => {
       try {
         // Send message to backend
         const result = await createMassagesReply({
-          id: selectedData?.userId,
+          id: selectedData?.id,
           replyMessage: message,
         }).unwrap();
 
@@ -106,29 +102,6 @@ const TicketDetails = () => {
         console.log("Message sent successfully:", result);
       } catch (error) {
         console.error("Failed to send message:", error);
-        // Optionally show error notification to user
-      }
-    }
-  };
-
-  const handleStatusChange = async (newStatus: string) => {
-    if (selectedRequest) {
-      try {
-        await updateTockenStatus({
-          id: selectedData?.id,
-          status: newStatus,
-        }).unwrap();
-
-        setSelectedStatus(newStatus);
-        // Update the selected request status
-        setSelectedRequest({
-          ...selectedRequest,
-          status: newStatus,
-        });
-
-        console.log("Status updated successfully");
-      } catch (error) {
-        console.error("Failed to update status:", error);
         // Optionally show error notification to user
       }
     }
@@ -215,17 +188,13 @@ const TicketDetails = () => {
               <div className="flex items-start space-x-3">
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium flex-shrink-0">
-                  {request.user?.profileImage ? (
-                    <Image
-                      src={request.user.profileImage}
-                      alt={request.user?.firstName || "User"}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    request.user?.firstName?.charAt(0).toUpperCase() || "U"
-                  )}
+                  <Image
+                    src={request?.user?.profileImage || "/image.png"}
+                    alt={request.user?.firstName || "/image.png"}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -275,18 +244,13 @@ const TicketDetails = () => {
             <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-medium text-lg">
-                  {selectedData?.user?.profileImage ? (
-                    <Image
-                      src={selectedData?.user.profileImage}
-                      alt={selectedData?.user?.firstName || "User"}
-                      width={48}
-                      height={48}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    selectedData?.user?.firstName?.charAt(0).toUpperCase() ||
-                    "U"
-                  )}
+                  <Image
+                    src={selectedData?.user?.profileImage || "/image.png"}
+                    alt={selectedData?.user?.firstName || "User"}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -352,17 +316,13 @@ const TicketDetails = () => {
                     // User Message (Left)
                     <div key={msg.id} className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                        {msg.senderImage ? (
-                          <Image
-                            src={msg.senderImage}
-                            alt={msg.senderName}
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          msg.senderName?.charAt(0).toUpperCase() || "U"
-                        )}
+                        <Image
+                          src={msg.senderImage || "/image.png"}
+                          alt={msg.senderName}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
@@ -409,9 +369,6 @@ const TicketDetails = () => {
             {/* Message Input */}
             <div className="bg-white border-t border-gray-200 p-4">
               <div className="max-w-4xl mx-auto flex items-end gap-3">
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Paperclip className="w-5 h-5 text-gray-600" />
-                </button>
                 <div className="flex-1 relative">
                   <textarea
                     value={message}
@@ -443,12 +400,6 @@ const TicketDetails = () => {
                       Send
                     </>
                   )}
-                </button>
-                <button
-                  onClick={() => handleStatusChange("RESOLVED")}
-                  className="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors font-medium"
-                >
-                  Shlove
                 </button>
               </div>
             </div>

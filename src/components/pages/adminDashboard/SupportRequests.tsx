@@ -1,8 +1,6 @@
 "use client";
 import { Table } from "@/components/ui/Table/Table";
 import type React from "react";
-
-import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { IoSearch } from "react-icons/io5";
@@ -69,34 +67,8 @@ const SupportRequests = () => {
     setSearch(event.target.value);
   };
 
-  const toggleDropdown = (id: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  const closeDropdown = (id: string) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [id]: false,
-    }));
-  };
-
   const handleViewDetails = (row: RequestMeta) => {
     router.push(`/dashboard/support-request/${row?.user?.id}`);
-  };
-
-  const handleSolve = (row: RequestMeta) => {
-    console.log("Solving request:", row);
-    // Add your solve logic here
-    closeDropdown(row.id);
-  };
-
-  const handleReject = (row: RequestMeta) => {
-    console.log("Rejecting request:", row);
-    // Add your reject logic here
-    closeDropdown(row.id);
   };
 
   const columns = [
@@ -107,7 +79,7 @@ const SupportRequests = () => {
       render: (users: RequestMeta) => (
         <div className="flex items-center space-x-3">
           <Image
-            src={users?.user?.profileImage || "/placeholder.svg"}
+            src={users?.user?.profileImage || "/image.png"}
             alt={users?.user?.firstName}
             width={32}
             height={32}
@@ -139,56 +111,14 @@ const SupportRequests = () => {
       header: "Action",
       accessor: "action",
       className: "px-2",
-      render: (row: RequestMeta) => {
-        const isOpen = openDropdowns[row.id] || false;
-        return (
-          <div
-            className="relative"
-            ref={(el) => {
-              dropdownRefs.current[row.id] = el;
-            }}
-          >
-            <button
-              onClick={() => toggleDropdown(row.id)}
-              className="flex items-center space-x-1 px-3 py-2 rounded-[24px] bg-[var(--foundation-blue-light-hover,#DEE8FC)] text-[var(--Foundation-Blue-Normal,#2563EB)] font-outfit text-base font-normal leading-[140%]"
-            >
-              Action
-              <ChevronDown className="w-4 h-4" />
-            </button>
-
-            {isOpen && (
-              <div className="absolute right-0 mt-2 w-36 bg-white border rounded-lg shadow-lg z-10">
-                <ul className="py-1 text-sm text-gray-700">
-                  <li>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={() => handleViewDetails(row)}
-                    >
-                      View
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                      onClick={() => handleSolve(row)}
-                    >
-                      Solve
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
-                      onClick={() => handleReject(row)}
-                    >
-                      Reject
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-        );
-      },
+      render: (row: RequestMeta) => (
+        <button
+          className="w-full text-left px-4 py-2 hover:bg-gray-100"
+          onClick={() => handleViewDetails(row)}
+        >
+          View
+        </button>
+      ),
     },
   ];
 

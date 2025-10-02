@@ -99,7 +99,7 @@ const adminDashboardApi = baseApi.injectEndpoints({
           params: { page, limit },
         };
       },
-      providesTags: ["orders"],
+      providesTags: ["orders", "user" ,"tickets", "messages" ],
     }),
 
     // GET ALL TICKET LIST
@@ -120,7 +120,7 @@ const adminDashboardApi = baseApi.injectEndpoints({
         url: `/tokens/${id}`,
         method: "GET",
       }),
-      providesTags: ["tickets"],
+      providesTags: ["tickets", "messages", "user"],
     }),
 
     // create messages
@@ -140,11 +140,11 @@ const adminDashboardApi = baseApi.injectEndpoints({
       query: (data) => {
         return {
           url: `/tokens/reply-message/${data?.id}`,
-          method: "POST",
-          body: data?.replyMessage,
+          method: "PATCH",
+          body: { replyMessage: data?.replyMessage },
         };
       },
-      invalidatesTags: ["messages"],
+      invalidatesTags: ["messages", "tickets", "user"],
     }),
 
     // update tocken status
