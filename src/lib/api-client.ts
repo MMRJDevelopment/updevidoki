@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Post {
+  json(): unknown;
+  success: any;
   id: string;
   userId: string;
   orderNo: string;
@@ -68,15 +70,26 @@ export async function createMemory(formData: FormData): Promise<any> {
 
 // PUT: Update post
 export async function updatePost(
-  id: number,
-  data: Partial<Post>
+  id: string,
+  formData: FormData
 ): Promise<Post> {
-  const res = await fetch(`${NEXT_PUBLIC_BASE_URL}/posts/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+  const token = localStorage.getItem("access_token") || "";
+
+  const res = await fetch(`${NEXT_PUBLIC_BASE_URL}/memories/update/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
   });
-  if (!res.ok) throw new Error("Failed to update post");
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ 
+      message: "Failed to update post" 
+    }));
+    throw new Error(error.message || "Failed to update post");
+  }
+
   return res.json();
 }
 
@@ -86,4 +99,26 @@ export async function deletePost(id: number): Promise<void> {
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to delete post");
+}
+
+
+
+
+export async function getMemory(id:string): Promise<any> {
+  const token = localStorage.getItem("access_token") || "";
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/memories/${id}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: 'no-store', // or 'force-cache' depending on your needs
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Failed to fetch memory' }));
+    throw new Error(error.message || 'Failed to fetch memory');
+  }
+
+  return res.json();
 }

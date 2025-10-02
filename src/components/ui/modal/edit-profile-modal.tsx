@@ -30,8 +30,7 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import moment from "moment";
-import { useAppSelector } from "@/redux/hooks";
-import { RootState } from "@/redux/store";
+import { updatePost } from "@/lib/api-client";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -90,7 +89,6 @@ export function EditProfileModal({
   const [coverPreview, setCoverPreview] = useState<string>("");
   const [isFormModified, setIsFormModified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const token = useAppSelector((state: RootState) => state.auth.access_token);
 
   // Safe data access functions
   const getFullName = () => memorialData?.fullName || "Memorial Profile";
@@ -259,29 +257,24 @@ export function EditProfileModal({
       // }).unwrap();
 
       setIsLoading(true);
+      const postId = getId();
+      
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/memories/update/${getId()}`,
-        {
-          method: "PATCH",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await updatePost(postId, formData);
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        message.error(
-          errorData.message || "Failed to update profile. Please try again."
-        );
+      if(res.success){
+
+        setIsLoading(false);
+        message.success("Profile updated successfully!");
+        setIsFormModified(false);
+        onClose();
         return;
       }
 
-      message.success("Profile updated successfully!");
-      setIsFormModified(false);
-      onClose();
+
+   
+
+    
     } catch (error: any) {
       message.error(
         error?.data?.message || "Failed to update profile. Please try again."

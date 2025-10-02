@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Plus, QrCode, Edit } from "lucide-react";
 
@@ -12,8 +13,8 @@ import { AddVideoModal } from "@/components/ui/modal/add-video-modal";
 import { ImageDetailModal } from "@/components/ui/modal/image-detail-modal";
 import { VideoDetailModal } from "@/components/ui/modal/video-detail-modal";
 import { TbCirclesRelation } from "react-icons/tb";
-import { useGetSingleMemorialQuery } from "@/redux/features/userDashbord/userDashbordApi";
 import { usePathname } from "next/navigation";
+import { getMemory } from "@/lib/api-client";
 
 export default function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -25,38 +26,36 @@ export default function ProfilePage() {
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
   const path = usePathname();
   const id = path.split("/").pop();
-  console.log(id);
-  const { data, isLoading } = useGetSingleMemorialQuery(id);
-  const memorial = data?.data;
+  const [memory, setMemory] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  console.log(memorial, isLoading);
 
-  const photos = [
-    "https://plus.unsplash.com/premium_photo-1661675440353-6a6019c95bc7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dmlkZW98ZW58MHx8MHx8fDA%3D",
-    "https://images.unsplash.com/photo-1528109966604-5a6a4a964e8d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8dmlkZW98ZW58MHx8MHx8fDA%3D",
-    "https://plus.unsplash.com/premium_photo-1673356713416-a8ed69af6f4a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fHZpZGVvfGVufDB8fDB8fHww",
-    "https://images.unsplash.com/photo-1511903979581-3f1d3afb4372?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDh8fHZpZGVvfGVufDB8fDB8fHww",
-    "https://images.unsplash.com/photo-1576460307366-51bc1d23be78?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NjZ8fHZpZGVvfGVufDB8fDB8fHww",
-    "https://images.unsplash.com/photo-1528109966604-5a6a4a964e8d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8dmlkZW98ZW58MHx8MHx8fDA%3D",
-    "https://plus.unsplash.com/premium_photo-1673356713416-a8ed69af6f4a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fHZpZGVvfGVufDB8fDB8fHww",
-    "https://plus.unsplash.com/premium_photo-1661675440353-6a6019c95bc7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dmlkZW98ZW58MHx8MHx8fDA%3D",
-    "https://images.unsplash.com/photo-1576460307366-51bc1d23be78?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NjZ8fHZpZGVvfGVufDB8fDB8fHww",
-  ];
+    const loadMemory = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getMemory(id as string);
+      setMemory(data?.data || null);
+    } catch (error) {
+      console.error("Failed to load memory:", error);
+      setError(error instanceof Error ? error.message : "Failed to load memory");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const videos = [
-    {
-      thumbnail:
-        "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8dHJhdmVsfGVufDB8fDB8fHww",
-      duration: "2:34",
-      url: "https://cdn.pixabay.com/video/2025/07/22/292827_tiny.mp4",
-    },
-    {
-      thumbnail:
-        "https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NzJ8fHRyYXZlbHxlbnwwfHwwfHx8MA%3D%3D",
-      duration: "1:45",
-      url: "https://cdn.pixabay.com/video/2025/06/24/287510_tiny.mp4",
-    },
-  ];
+  useEffect(() => {
+    if (id) {
+      loadMemory();
+    }
+  }, [id]);
+
+  console.log(memory, isLoading,error);
+  const photos = memory?.photos || [];
+  const videos = memory?.videos || [];
+
+
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
@@ -77,7 +76,7 @@ export default function ProfilePage() {
             className="h-80 bg-cover bg-center rounded-t-lg"
             style={{
               backgroundImage: `url(${
-                memorial?.coverPhoto || "/placeholder.svg?height=320&width=1280"
+                memory?.coverPhoto || "/placeholder.svg?height=320&width=1280"
               })`,
             }}
           />
@@ -86,7 +85,7 @@ export default function ProfilePage() {
           <div className="absolute -bottom-16 left-8">
             <Image
               src={
-                memorial?.profilePhoto ||
+                memory?.profilePhoto ||
                 "/placeholder.svg?height=160&width=160"
               }
               alt="Profile Photo"
@@ -121,9 +120,9 @@ export default function ProfilePage() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {memorial?.fullName}
+                {memory?.fullName}
               </h1>
-              <p className="text-gray-600 text-lg">{memorial?.occupation}</p>
+              <p className="text-gray-600 text-lg">{memory?.occupation}</p>
             </div>
             <Button
               onClick={() => setIsEditModalOpen(true)}
@@ -139,7 +138,7 @@ export default function ProfilePage() {
           {/* Bio Section */}
           <div className="p-6">
             <h2 className="text-xl font-semibold mb-4">Bio</h2>
-            <p className="text-gray-700 leading-relaxed">{memorial?.bio}</p>
+            <p className="text-gray-700 leading-relaxed">{memory?.bio}</p>
           </div>
 
           {/* About Section */}
@@ -148,8 +147,8 @@ export default function ProfilePage() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className="text-gray-700">
-                  {memorial?.dateOfBirth
-                    ? new Date(memorial.dateOfBirth).toLocaleDateString(
+                  {memory?.dateOfBirth
+                    ? new Date(memory.dateOfBirth).toLocaleDateString(
                         "en-US",
                         {
                           year: "numeric",
@@ -159,8 +158,8 @@ export default function ProfilePage() {
                       )
                     : ""}{" "}
                   -{" "}
-                  {memorial?.dateOfDeath
-                    ? new Date(memorial.dateOfDeath).toLocaleDateString(
+                  {memory?.dateOfDeath
+                    ? new Date(memory.dateOfDeath).toLocaleDateString(
                         "en-US",
                         {
                           year: "numeric",
@@ -175,13 +174,13 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-green-500" />
                 <span className="text-gray-700">
-                  {memorial?.country}, {memorial?.city}
+                  {memory?.country}, {memory?.city}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <TbCirclesRelation className="w-5 h-5 text-blue-500" />
                 <span className="text-gray-700">
-                  Relationship - {memorial?.relation}
+                  Relationship - {memory?.relation}
                 </span>
               </div>
             </div>
@@ -201,7 +200,7 @@ export default function ProfilePage() {
               </Button>
             </div>
             <div className="grid grid-cols-5 gap-2">
-              {(memorial?.photos as any)?.map((photo: any, index: any) => (
+              {(memory?.photos as any)?.map((photo: any, index: any) => (
                 <div key={index} className="aspect-square">
                   <Image
                     src={photo || "/placeholder.svg"}
@@ -233,7 +232,7 @@ export default function ProfilePage() {
               </Button>
             </div>
             <div className="space-y-4">
-              {(memorial?.videos as any)?.map((video: any, index: any) => (
+              {(memory?.videos as any)?.map((video: any, index: any) => (
                 <div key={index} className="flex gap-4">
                   <div
                     className="relative w-32 h-20 rounded-lg overflow-hidden cursor-pointer group"
@@ -272,12 +271,12 @@ export default function ProfilePage() {
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        memorialData={memorial}
+        memorialData={memory}
       />
       <AddPhotosModal
         isOpen={isPhotosModalOpen}
         onClose={() => setIsPhotosModalOpen(false)}
-        id={memorial?.id}
+        id={memory?.id}
       />
       <AddVideoModal
         isOpen={isVideoModalOpen}
